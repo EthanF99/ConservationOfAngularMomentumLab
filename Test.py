@@ -14,8 +14,6 @@ names = {
     7: "Head",
 }
 
-
-
 # Path to your CSV file
 csv_file = r"C:\Users\ethan\PycharmProjects\ConservationOfAngularMomentumLab\Data\csvxypts.csv"
 
