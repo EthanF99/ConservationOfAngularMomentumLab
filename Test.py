@@ -112,22 +112,6 @@ plt.grid(True)
 plt.legend()
 plt.savefig('angular_momentum_relative.png')
 
-# You might also want to smooth the data to reduce noise
-window_size = 5  # Adjust as needed
-smoothed_angular_momentum = np.convolve(angular_momentum,
-                                        np.ones(window_size) / window_size,
-                                        mode='valid')
-
-plt.figure(figsize=(10, 6))
-plt.plot(smoothed_angular_momentum, linewidth=2)
-plt.axhline(y=float(np.mean(smoothed_angular_momentum)), color='r', linestyle='--', alpha=0.7,
-            label=f'Mean: {float(np.mean(smoothed_angular_momentum)):.2f}')
-plt.xlabel('Frame')
-plt.ylabel('Angular Momentum (smoothed)')
-plt.title('Smoothed Angular Momentum During Cat Falling')
-plt.grid(True)
-plt.legend()
-plt.savefig('angular_momentum_smoothed.png')
 
 # Calculate and plot net rotation
 # Use the angle between two vectors (e.g., head-COM and tail-COM)
@@ -169,12 +153,12 @@ plt.savefig('cat_configuration_angle.png')
 angles_rad = np.radians(angles)
 
 # Angular velocity = derivative of angle (in radians) with respect to time
-omega = np.gradient(angles_rad)  # If time step is 1 frame per unit
+omega_rad = np.gradient(angles_rad)  # If time step is 1 frame per unit
 
 
 
-#masses = np.ones(len(x_coords))  # Assuming equal mass
-masses = np.array([0.12, 0.20, 0.20, 0.24, 0.24, 2.40, 0.60])
+masses = np.ones(len(x_coords))  # Assuming equal mass
+#masses = np.array([0.12, 0.20, 0.20, 0.24, 0.24, 2.40, 0.60]) #average masses of different parts of a cat
 
 I = np.zeros(len(data))
 
@@ -185,26 +169,27 @@ for i in range(len(x_coords)):
     ry = y_coords[i] - y_com
     r_squared = rx**2 + ry**2
     I += masses[i] * r_squared  # Or just I += r_squared if mass=1
-# Estimate angular velocity (change in orientation over time)
 
-x_head0 = x_coords[6][0]
-y_head0 = y_coords[6][0]
-x_com0 = x_coords[5][0]
-y_com0 = y_coords[5][0]
+
+
+#x_head0 = x_coords[6][0]
+#y_head0 = y_coords[6][0]
+#x_com0 = x_coords[5][0]
+#y_com0 = y_coords[5][0]
 
 # Compute pixel distance from head to center
-head_to_com_px = np.sqrt((x_head0 - x_com0)**2 + (y_head0 - y_com0)**2)
-body_length_px = 2 * head_to_com_px
+#head_to_com_px = np.sqrt((x_head0 - x_com0)**2 + (y_head0 - y_com0)**2)
+#body_length_px = 2 * head_to_com_px
 
 # Estimate torso length (about 40% of body) and radius (~15% of that)
-torso_length_px = 0.4 * body_length_px
-torso_radius_px = 0.15 * torso_length_px
+#torso_length_px = 0.4 * body_length_px
+#torso_radius_px = 0.15 * torso_length_px
 
-I += 0.5*6*torso_radius_px**2
-omega = np.gradient(angles)  # degrees per frame
 
-# Convert degrees/frame to radians/frame for use in L = Iω
-omega_rad = np.radians(omega)
+#Inertia of Cylinder I = 0.5mr^2
+#average torso weight of a housecat = 6 kg
+#I += 0.5*6*torso_radius_px**2 #
+
 
 # Angular momentum
 L = I * omega_rad
@@ -212,14 +197,14 @@ L = I * omega_rad
 # Plot angular momentum
 plt.figure(figsize=(10, 6))
 plt.plot(L, linewidth=2)
-plt.axhline(y=float(np.mean(L)), color='r', linestyle='--', alpha=0.7,
-           label=f'Mean: {float(np.mean(L)):.2f}')
+plt.axhline(y=float(np.nanmean(L)), color='r', linestyle='--', alpha=0.7,
+           label=f'Mean: {float(np.nanmean(L)):.2f}')
 plt.xlabel('Frame')
 plt.ylabel('Angular Momentum (Iω, arbitrary units)')
-plt.title('Angular Momentum with Non-Uniform Mass Distribution')
+plt.title('Angular Momentum Through L=Iω')
 plt.grid(True)
 plt.legend()
-plt.savefig('angular_momentum_nonuniform.png')
+plt.savefig('angular_momentum_lw.png')
 
 
 # Plot the moment of inertia over time
