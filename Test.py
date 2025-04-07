@@ -1,7 +1,7 @@
 import matplotlib
 import pandas as pd
 import matplotlib.pyplot as plt
-matplotlib.use('Agg')  # Use the non-interactive Agg backend
+matplotlib.use('Agg')
 import numpy as np
 
 names = {
@@ -14,14 +14,10 @@ names = {
     7: "Head",
 }
 
-# Path to your CSV file
 csv_file = r"C:\Users\ethan\PycharmProjects\ConservationOfAngularMomentumLab\Data\csvxypts.csv"
 
 # Load the data from CSV
 data = pd.read_csv(csv_file)
-
-# Check the first few rows to understand the format
-print(data.head())
 
 # Extract columns for x and y coordinates of tracked points (e.g., pt1_cam1_X, pt1_cam1_Y, ...)
 points_x = [col for col in data.columns if col.endswith('_X')]
@@ -32,7 +28,8 @@ x_coords = [data[pt_x].values for pt_x in points_x]
 y_coords = [data[pt_y].values for pt_y in points_y]
 
 # Time is generally the index in the CSV or a separate column
-time = np.arange(len(data))  # If no explicit time column, use the index as time
+# Already sorted but doesn't hurt to do it again
+time = np.arange(len(data))
 
 # Plot the X coordinates
 plt.figure(figsize=(12, 8))
@@ -63,8 +60,13 @@ plt.legend(loc='upper right')
 plt.grid(True)
 plt.savefig('tracked_y_coordinates.png')
 
+
+
+
+
+
 # Get center of mass coordinates (point 6)
-com_index = 5  # 0-based index for point 6
+com_index = 5
 x_com = x_coords[com_index]
 y_com = y_coords[com_index]
 
@@ -144,6 +146,54 @@ plt.ylabel('Angle (degrees)')
 plt.title('Head-COM-Tail Angle During Cat Falling')
 plt.grid(True)
 plt.savefig('cat_configuration_angle.png')
+
+
+
+# Calculate and plot net rotation
+front_right_index = 2
+front_left_index = 3
+back_left_index = 4
+back_right_index = 5
+leg_angles = []
+for i in range(len(data)):
+    # Vector from COM to head
+
+    front_x = (x_coords[front_right_index]+x_coords[front_left_index])/2
+    front_y = (y_coords[front_right_index]+y_coords[front_left_index])/2
+
+
+    back_x = (x_coords[back_right_index]+x_coords[back_left_index])/2
+    back_y = (y_coords[back_right_index]+y_coords[back_left_index])/2
+
+
+    front_vec = [front_x[i] - x_com[i],
+                front_y[i] - y_com[i]]
+
+    # Vector from COM to tail
+    back_vec = [back_x[i] - x_com[i],
+                back_y[i] - y_com[i]]
+
+    # Calculate angle between vectors
+    dot_product = front_vec[0] * back_vec[0] + front_vec[1] * back_vec[1]
+    front_mag = np.sqrt(front_vec[0] ** 2 + front_vec[1] ** 2)
+    back_mag = np.sqrt(back_vec[0] ** 2 + back_vec[1] ** 2)
+
+    cos_angle = dot_product / (front_mag * back_mag)
+    # Ensure within valid range due to potential numerical errors
+    cos_angle = np.clip(cos_angle, -1.0, 1.0)
+    leg_angle = np.arccos(cos_angle)
+    leg_angles.append(np.degrees(leg_angle))
+
+plt.figure(figsize=(10, 6))
+plt.plot(leg_angles, linewidth=2)
+plt.xlabel('Frame')
+plt.ylabel('Angle (degrees)')
+plt.title('FrontLeg-COM-BackLeg Angle During Cat Falling')
+plt.grid(True)
+plt.savefig('cat_configuration_leg_angle.png')
+
+
+
 
 
 
